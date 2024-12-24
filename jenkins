@@ -45,8 +45,7 @@ pipeline {
 
         stage('Apply Model on Test Data') {
             steps {
-                script {
-                    // Этот этап можно оставить пустым или реализовать в зависимости от потребностей
+                script {                    
                     echo 'Stage skipped due to earlier failure(s)'
                 }
             }
