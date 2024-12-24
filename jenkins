@@ -1,0 +1,64 @@
+pipeline {
+    agent any
+
+    environment {
+        VENV_PATH = './venv'
+    }
+
+    stages {
+        stage('Prepare Environment') {
+            steps {
+                script {
+                    // Создание виртуального окружения и установка зависимостей
+                    sh 'python3 -m venv ${VENV_PATH}'
+                    sh './${VENV_PATH}/bin/pip install --upgrade pip'
+                    sh './${VENV_PATH}/bin/pip install numpy pandas scikit-learn matplotlib seaborn requests'
+                }
+            }
+        }
+
+        stage('Download Data') {
+            steps {
+                script {
+                    // Скачивание данных для тренировки
+                    sh 'curl -O https://raw.githubusercontent.com/Odds112/pipelineML/main/train/train_data_0.csv'
+                    sh 'curl -O https://raw.githubusercontent.com/Odds112/pipelineML/main/train/train_data_1.csv'
+                    sh 'curl -O https://raw.githubusercontent.com/Odds112/pipelineML/main/train/train_data_2.csv'
+                    sh 'curl -O https://raw.githubusercontent.com/Odds112/pipelineML/main/train/train_data_3.csv'
+                    sh 'curl -O https://raw.githubusercontent.com/Odds112/pipelineML/main/train/train_data_4.csv'
+                    sh 'curl -O https://raw.githubusercontent.com/Odds112/pipelineML/main/test/test_data_0.csv'
+                }
+            }
+        }
+
+        stage('Train Model') {
+            steps {
+                script {
+                    // Скачивание скрипта train_model.py
+                    sh 'curl -o train_model.py https://raw.githubusercontent.com/Odds112/jenkinsPipeLine/main/train_model.py'
+
+                    // Активация виртуального окружения и запуск скрипта
+                    sh '. ./venv/bin/activate && python train_model.py'
+                }
+            }
+        }
+
+        stage('Apply Model on Test Data') {
+            steps {
+                script {
+                    // Этот этап можно оставить пустым или реализовать в зависимости от потребностей
+                    echo 'Stage skipped due to earlier failure(s)'
+                }
+            }
+        }
+
+        stage('Declarative: Post Actions') {
+            steps {
+                script {
+                    // Очистка рабочего пространства
+                    cleanWs()
+                }
+            }
+        }
+    }
+}
