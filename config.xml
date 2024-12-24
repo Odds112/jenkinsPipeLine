@@ -1,0 +1,92 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1472.ve4d5eca_143c4">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2218.v56d0cda_37c72"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2218.v56d0cda_37c72">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description>1)Скачивает файлы данных с GitHub.&#xd;
+2)Обрабатывает их и обучает модель.&#xd;
+3)Сохраняет обученную модель в файл.</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.40.0">
+      <projectUrl>https://github.com/Odds112/jenkinsPipeLine/</projectUrl>
+      <displayName></displayName>
+    </com.coravy.hudson.plugins.github.GithubProjectProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@4002.v80ca_d0f47d7f">
+    <script>pipeline {
+    agent any
+
+    environment {
+        VENV_PATH = &apos;./venv&apos;
+    }
+
+    stages {
+        stage(&apos;Prepare Environment&apos;) {
+            steps {
+                script {
+                    // Создание виртуального окружения и установка зависимостей
+                    sh &apos;python3 -m venv ${VENV_PATH}&apos;
+                    sh &apos;./${VENV_PATH}/bin/pip install --upgrade pip&apos;
+                    sh &apos;./${VENV_PATH}/bin/pip install numpy pandas scikit-learn matplotlib seaborn requests&apos;
+                }
+            }
+        }
+
+        stage(&apos;Download Data&apos;) {
+            steps {
+                script {
+                    // Скачивание данных для тренировки
+                    sh &apos;curl -O https://raw.githubusercontent.com/Odds112/pipelineML/main/train/train_data_0.csv&apos;
+                    sh &apos;curl -O https://raw.githubusercontent.com/Odds112/pipelineML/main/train/train_data_1.csv&apos;
+                    sh &apos;curl -O https://raw.githubusercontent.com/Odds112/pipelineML/main/train/train_data_2.csv&apos;
+                    sh &apos;curl -O https://raw.githubusercontent.com/Odds112/pipelineML/main/train/train_data_3.csv&apos;
+                    sh &apos;curl -O https://raw.githubusercontent.com/Odds112/pipelineML/main/train/train_data_4.csv&apos;
+                    sh &apos;curl -O https://raw.githubusercontent.com/Odds112/pipelineML/main/test/test_data_0.csv&apos;
+                }
+            }
+        }
+
+        stage(&apos;Train Model&apos;) {
+            steps {
+                script {
+                    // Скачивание скрипта train_model.py
+                    sh &apos;curl -o train_model.py https://raw.githubusercontent.com/Odds112/jenkinsPipeLine/main/train_model.py&apos;
+
+                    // Активация виртуального окружения и запуск скрипта
+                    sh &apos;. ./venv/bin/activate &amp;&amp; python train_model.py&apos;
+                }
+            }
+        }
+
+        stage(&apos;Apply Model on Test Data&apos;) {
+            steps {
+                script {
+                    // Этот этап можно оставить пустым или реализовать в зависимости от потребностей
+                    echo &apos;Stage skipped due to earlier failure(s)&apos;
+                }
+            }
+        }
+
+        stage(&apos;Declarative: Post Actions&apos;) {
+            steps {
+                script {
+                    // Очистка рабочего пространства
+                    cleanWs()
+                }
+            }
+        }
+    }
+}
+</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>
